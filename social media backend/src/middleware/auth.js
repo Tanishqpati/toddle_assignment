@@ -9,7 +9,11 @@ const authenticateToken = async (req, res, next) => {
 	try {
 		const authHeader = req.headers["authorization"];
 
-		const decoded = verifyToken(authHeader);
+		const token = authHeader && authHeader.split(" ")[1];
+		if (!token) {
+			return res.status(401).json({ error: "Access token required" });
+		}
+		const decoded = verifyToken(token);
 
 		if (!authHeader) {
 			return res.status(401).json({ error: "Access token required" });
@@ -36,7 +40,11 @@ const optionalAuth = async (req, res, next) => {
 		const authHeader = req.headers["authorization"];
 
 		if (authHeader) {
-			const decoded = verifyToken(authHeader);
+			const token = authHeader && authHeader.split(" ")[1];
+			if (!token) {
+				return res.status(401).json({ error: "Access token required" });
+			}
+			const decoded = verifyToken(token);
 			const user = await getUserById(decoded.userId);
 			if (user) {
 				req.user = user;
