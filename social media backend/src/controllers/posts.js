@@ -3,6 +3,9 @@ const {
   getPostById,
   getPostsByUserId,
   deletePost,
+  getFeedPosts,
+  updatePost,
+  searchPosts,
 } = require("../models/post.js");
 const logger = require("../utils/logger");
 
@@ -128,12 +131,68 @@ const remove = async (req, res) => {
   }
 };
 
-// TODO: Implement getFeed controller for content feed functionality
-// This should return posts from users that the current user follows
+/**
+ * Get feed posts (posts from users the current user follows)
+ */
+const getFeed = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
+    const posts = await getFeedPosts(userId, limit, offset);
+    res.json({
+      posts,
+      pagination: { page, limit, hasMore: posts.length === limit },
+    });
+  } catch (error) {
+    logger.critical("Get feed error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
-// TODO: Implement updatePost controller for editing posts
+/**
+ * Update a post
+ */
+const updatePostController = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { post_id } = req.params;
+    const { content, media_url, comments_enabled } = req.body;
+    const updated = await updatePost(post_id, userId, {
+      content,
+      media_url,
+      comments_enabled,
+    });
+    if (!updated) {
+      return res.status(404).json({ error: "Post not found or unauthorized" });
+    }
+    res.json({ message: "Post updated successfully" });
+  } catch (error) {
+    logger.critical("Update post error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
-// TODO: Implement searchPosts controller for searching posts by content
+/**
+ * Search posts by content
+ */
+const searchPostsController = async (req, res) => {
+  try {
+    const { q } = req.query;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const offset = (page - 1) * limit;
+    const posts = await searchPosts(q, limit, offset);
+    res.json({
+      posts,
+      pagination: { page, limit, hasMore: posts.length === limit },
+    });
+  } catch (error) {
+    logger.critical("Search posts error:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 module.exports = {
   create,
@@ -141,4 +200,7 @@ module.exports = {
   getUserPosts,
   getMyPosts,
   remove,
+  getFeed,
+  updatePost: updatePostController,
+  searchPosts: searchPostsController,
 };
