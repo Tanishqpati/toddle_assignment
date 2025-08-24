@@ -54,7 +54,7 @@ const getPostsByUserId = async (userId, limit = 20, offset = 0) => {
     `SELECT p.*, u.username, u.full_name
      FROM posts p
      JOIN users u ON p.user_id = u.id
-     WHERE p.user_id = $1
+     WHERE p.user_id = $1 AND p.is_deleted = false
      ORDER BY p.created_at DESC
      LIMIT $2 OFFSET $3`,
     [userId, limit, offset],
@@ -71,7 +71,7 @@ const getPostsByUserId = async (userId, limit = 20, offset = 0) => {
  */
 const deletePost = async (postId, userId) => {
   const result = await query(
-    "UPDATE posts SET is_deleted = false WHERE id = $1 AND user_id = $2",
+    "UPDATE posts SET is_deleted = true WHERE id = $1 AND user_id = $2",
     [postId, userId],
   );
 
