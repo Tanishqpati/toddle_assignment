@@ -19,7 +19,7 @@ const createPost = async ({
     `INSERT INTO posts (user_id, content, media_url, comments_enabled, created_at, is_deleted)
      VALUES ($1, $2, $3, $4, NOW(), true)
      RETURNING id, user_id, content, media_url, comments_enabled, created_at`,
-    [user_id, content, media_url, comments_enabled],
+    [user_id, content, media_url, comments_enabled]
   );
 
   return result.rows[0];
@@ -36,7 +36,7 @@ const getPostById = async (postId) => {
      FROM posts p
      JOIN users u ON p.user_id = u.id
      WHERE p.id = $1`,
-    [postId],
+    [postId]
   );
 
   return result.rows[0] || null;
@@ -57,7 +57,7 @@ const getPostsByUserId = async (userId, limit = 20, offset = 0) => {
      WHERE p.user_id = $1 AND p.is_deleted = false
      ORDER BY p.created_at DESC
      LIMIT $2 OFFSET $3`,
-    [userId, limit, offset],
+    [userId, limit, offset]
   );
 
   return result.rows;
@@ -72,22 +72,80 @@ const getPostsByUserId = async (userId, limit = 20, offset = 0) => {
 const deletePost = async (postId, userId) => {
   const result = await query(
     "UPDATE posts SET is_deleted = true WHERE id = $1 AND user_id = $2",
-    [postId, userId],
+    [postId, userId]
   );
 
   return result.rowCount > 0;
 };
 
-// TODO: Implement getFeedPosts function that returns posts from followed users
-// This should include pagination and ordering by creation date
+/**
+ * Get feed posts (posts from users the current user follows)
+ * @param {number} userId - Current user ID
+ * @param {number} limit
+ * @param {number} offset
+ * @returns {Promise<Array>} Array of posts
+ */
+const getFeedPosts = async (userId, limit = 20, offset = 0) => {
+  const result = await query(
+    `SELECT p.*, u.username, u.full_name
+     FROM posts p
+     JOIN users u ON p.user_id = u.id
+     WHERE p.user_id IN (
+       SELECT following_id FROM follow WHERE follower_id = $1
+     ) AND p.is_deleted = false
+     ORDER BY p.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [userId, limit, offset]
+  );
+  return result.rows;
+};
 
-// TODO: Implement updatePost function for editing posts
+/**
+ * Update a post
+ * @param {number} postId
+ * @param {number} userId
+ * @param {Object} updateData - { content, media_url, comments_enabled }
+ * @returns {Promise<boolean>} Success status
+ */
+const updatePost = async (
+  postId,
+  userId,
+  { content, media_url, comments_enabled }
+) => {
+  const result = await query(
+    `UPDATE posts SET content = COALESCE($1, content), media_url = COALESCE($2, media_url), comments_enabled = COALESCE($3, comments_enabled)
+     WHERE id = $4 AND user_id = $5 AND is_deleted = false`,
+    [content, media_url, comments_enabled, postId, userId]
+  );
+  return result.rowCount > 0;
+};
 
-// TODO: Implement searchPosts function for content search
+/**
+ * Search posts by content
+ * @param {string} queryText
+ * @param {number} limit
+ * @param {number} offset
+ * @returns {Promise<Array>} Array of posts
+ */
+const searchPosts = async (queryText, limit = 20, offset = 0) => {
+  const result = await query(
+    `SELECT p.*, u.username, u.full_name
+     FROM posts p
+     JOIN users u ON p.user_id = u.id
+     WHERE p.is_deleted = false AND p.content ILIKE $1
+     ORDER BY p.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [`%${queryText}%`, limit, offset]
+  );
+  return result.rows;
+};
 
 module.exports = {
   createPost,
   getPostById,
   getPostsByUserId,
   deletePost,
+  getFeedPosts,
+  updatePost,
+  searchPosts,
 };
