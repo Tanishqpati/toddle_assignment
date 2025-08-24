@@ -51,7 +51,9 @@ const getPostById = async (postId) => {
  */
 const getPostsByUserId = async (userId, limit = 20, offset = 0) => {
   const result = await query(
-    `SELECT p.*, u.username, u.full_name
+    `SELECT p.*, u.username, u.full_name,
+      (SELECT COUNT(*) FROM "like" WHERE post_id = p.id) AS like_count,
+      (SELECT COUNT(*) FROM comment WHERE post_id = p.id) AS comment_count
      FROM posts p
      JOIN users u ON p.user_id = u.id
      WHERE p.user_id = $1 AND p.is_deleted = false
@@ -79,7 +81,7 @@ const deletePost = async (postId, userId) => {
 };
 
 /**
- * Get feed posts (posts from users the current user follows)
+ * Get feed posts (posts from users the current user follows) with like and comment counts
  * @param {number} userId - Current user ID
  * @param {number} limit
  * @param {number} offset
@@ -87,12 +89,15 @@ const deletePost = async (postId, userId) => {
  */
 const getFeedPosts = async (userId, limit = 20, offset = 0) => {
   const result = await query(
-    `SELECT p.*, u.username, u.full_name
+    `SELECT p.*, u.username, u.full_name,
+      (SELECT COUNT(*) FROM "like" WHERE post_id = p.id) AS like_count,
+      (SELECT COUNT(*) FROM comment WHERE post_id = p.id) AS comment_count
      FROM posts p
      JOIN users u ON p.user_id = u.id
      WHERE p.user_id IN (
        SELECT following_id FROM follow WHERE follower_id = $1
-     ) AND p.is_deleted = false
+     ) OR p.user_id = $1
+     AND p.is_deleted = false
      ORDER BY p.created_at DESC
      LIMIT $2 OFFSET $3`,
     [userId, limit, offset]
