@@ -1,11 +1,13 @@
 const express = require("express");
 const { validateRequest, createPostSchema } = require("../utils/validation");
 const {
-	create,
-	getById,
-	getUserPosts,
-	getMyPosts,
-	remove,
+  create,
+  getById,
+  getUserPosts,
+  getMyPosts,
+  remove,
+  getFeed,
+  updatePost,
 } = require("../controllers/posts");
 const { authenticateToken, optionalAuth } = require("../middleware/auth");
 
@@ -30,10 +32,10 @@ router.get("/user/:user_id", optionalAuth, getUserPosts);
 // DELETE /api/posts/:post_id - Delete a post
 router.delete("/:post_id", authenticateToken, remove);
 
-// TODO: Add route for content feed
 // GET /api/posts/feed - Get posts from followed users
+router.get("/feed", authenticateToken, getFeed);
 
-// TODO: Add route for updating posts
 // PUT /api/posts/:post_id - Update a post
+router.put("/:post_id", authenticateToken, updatePost);
 
 module.exports = router;
