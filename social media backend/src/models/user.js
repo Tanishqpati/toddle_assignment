@@ -60,16 +60,72 @@ const verifyPassword = async (plainPassword, hashedPassword) => {
   return await bcrypt.compare(plainPassword, hashedPassword);
 };
 
-// TODO: Implement findUsersByName function for search functionality
-// This should support partial name matching and pagination
+/**
+ * Find users by (partial) name or username, with pagination
+ * @param {string} queryText
+ * @param {number} limit
+ * @param {number} offset
+ * @returns {Promise<Array>} Array of users
+ */
+const findUsersByName = async (queryText, limit = 20, offset = 0) => {
+  const result = await query(
+    `SELECT id, username, email, full_name, created_at
+     FROM users
+     WHERE (username ILIKE $1 OR full_name ILIKE $1) AND is_deleted = false
+     ORDER BY created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [`%${queryText}%`, limit, offset]
+  );
+  return result.rows;
+};
 
-// TODO: Implement getUserProfile function that includes follower/following counts
+/**
+ * Get user profile with follower/following counts
+ * @param {number} userId
+ * @returns {Promise<Object|null>} User profile with counts
+ */
+const getUserProfile = async (userId) => {
+  const userResult = await query(
+    `SELECT id, username, email, full_name, created_at FROM users WHERE id = $1 AND is_deleted = false`,
+    [userId]
+  );
+  if (!userResult.rows[0]) return null;
+  const followerResult = await query(
+    `SELECT COUNT(*)::int AS count FROM follow WHERE following_id = $1`,
+    [userId]
+  );
+  const followingResult = await query(
+    `SELECT COUNT(*)::int AS count FROM follow WHERE follower_id = $1`,
+    [userId]
+  );
+  return {
+    ...userResult.rows[0],
+    followerCount: followerResult.rows[0].count,
+    followingCount: followingResult.rows[0].count,
+  };
+};
 
-// TODO: Implement updateUserProfile function for profile updates
+/**
+ * Update user profile
+ * @param {number} userId
+ * @param {Object} updateData - { full_name, email }
+ * @returns {Promise<boolean>} Success status
+ */
+const updateUserProfile = async (userId, { full_name, email }) => {
+  const result = await query(
+    `UPDATE users SET full_name = COALESCE($1, full_name), email = COALESCE($2, email)
+     WHERE id = $3 AND is_deleted = false`,
+    [full_name, email, userId]
+  );
+  return result.rowCount > 0;
+};
 
 module.exports = {
   createUser,
   getUserByUsername,
   getUserById,
   verifyPassword,
+  findUsersByName,
+  getUserProfile,
+  updateUserProfile,
 };
