@@ -5,7 +5,7 @@ const { query } = require("../utils/database");
  */
 
 /**
- * Create a new post
+ * Create a new post (with optional scheduled time)
  * @param {Object} postData - Post data
  * @returns {Promise<Object>} Created post
  */
@@ -14,12 +14,13 @@ const createPost = async ({
   content,
   media_url,
   comments_enabled = true,
+  scheduled_at = null,
 }) => {
   const result = await query(
-    `INSERT INTO posts (user_id, content, media_url, comments_enabled, created_at, is_deleted)
-     VALUES ($1, $2, $3, $4, NOW(), true)
-     RETURNING id, user_id, content, media_url, comments_enabled, created_at`,
-    [user_id, content, media_url, comments_enabled]
+    `INSERT INTO posts (user_id, content, media_url, comments_enabled, created_at, is_deleted, scheduled_at)
+     VALUES ($1, $2, $3, $4, NOW(), false, $5)
+     RETURNING id, user_id, content, media_url, comments_enabled, created_at, scheduled_at`,
+    [user_id, content, media_url, comments_enabled, scheduled_at]
   );
 
   return result.rows[0];
@@ -57,6 +58,7 @@ const getPostsByUserId = async (userId, limit = 20, offset = 0) => {
      FROM posts p
      JOIN users u ON p.user_id = u.id
      WHERE p.user_id = $1 AND p.is_deleted = false
+     AND (p.scheduled_at IS NULL OR p.scheduled_at <= NOW())
      ORDER BY p.created_at DESC
      LIMIT $2 OFFSET $3`,
     [userId, limit, offset]
@@ -81,7 +83,7 @@ const deletePost = async (postId, userId) => {
 };
 
 /**
- * Get feed posts (posts from users the current user follows) with like and comment counts
+ * Get feed posts (posts from users the current user follows) with like and comment counts, only show posts scheduled for now or earlier
  * @param {number} userId - Current user ID
  * @param {number} limit
  * @param {number} offset
@@ -94,10 +96,11 @@ const getFeedPosts = async (userId, limit = 20, offset = 0) => {
       (SELECT COUNT(*) FROM comment WHERE post_id = p.id) AS comment_count
      FROM posts p
      JOIN users u ON p.user_id = u.id
-     WHERE p.user_id IN (
+     WHERE (p.user_id IN (
        SELECT following_id FROM follow WHERE follower_id = $1
-     ) OR p.user_id = $1
+     ) OR p.user_id = $1)
      AND p.is_deleted = false
+     AND (p.scheduled_at IS NULL OR p.scheduled_at <= NOW())
      ORDER BY p.created_at DESC
      LIMIT $2 OFFSET $3`,
     [userId, limit, offset]
