@@ -9,98 +9,145 @@ const resolvers = {
   Query: {
     me: async (_, __, { user }) => {
       if (!user) return null;
-      return userModel.getById(user.id);
+      return userModel.getUserById(user.userId);
     },
-    user: (_, { id }) => userModel.getById(id),
-    users: (_, { search }) => userModel.search(search),
-    post: (_, { id }) => postModel.getById(id),
-    posts: (_, { userId, search }) => postModel.getAll({ userId, search }),
-    feed: (_, __, { user }) => postModel.getFeed(user?.id),
-    comments: (_, { postId }) => commentModel.getByPostId(postId),
-    likes: (_, { postId }) => likeModel.getByPostId(postId),
+    user: (_, { id }) => userModel.getUserById(id),
+    users: (_, { search }) => userModel.findUsersByName(search || ""),
+    post: (_, { id }) => postModel.getPostById(id),
+    posts: (_, { userId, search }) => {
+      if (userId) return postModel.getPostsByUserId(userId, 20, 0);
+      if (search) return postModel.searchPosts(search, 20, 0);
+      return [];
+    },
+    feed: (_, __, { user }) => {
+      if (!user) return [];
+      return postModel.getFeedPosts(user.userId, 20, 0);
+    },
+    comments: (_, { postId }) => commentModel.getPostComments(postId, 20, 0),
+    likes: (_, { postId }) => likeModel.getLikesByPostId(postId),
     followers: (_, { userId }) => followModel.getFollowers(userId),
     following: (_, { userId }) => followModel.getFollowing(userId),
   },
   Mutation: {
-    register: async (_, { username, email, password }) => {
-      const user = await userModel.create({ username, email, password });
-      const token = jwtUtils.generateToken(user);
+    register: async (_, { username, email, password, full_name }) => {
+      // Reuse REST logic
+      const user = await userModel.createUser({
+        username,
+        email,
+        password,
+        full_name,
+      });
+      const token = jwtUtils.generateToken({
+        userId: user.id,
+        username: user.username,
+      });
       return { token, user };
     },
-    login: async (_, { email, password }) => {
-      const user = await userModel.verifyCredentials(email, password);
+    login: async (_, { email, password, username }) => {
+      // Reuse REST logic: allow login by username or email
+      let user;
+      if (username) {
+        user = await userModel.getUserByUsername(username);
+      } else if (email) {
+        // If you want to support email login, you can add getUserByEmail in user.js
+        const result = await require("../utils/database").query(
+          "SELECT * FROM users WHERE email = $1",
+          [email]
+        );
+        user = result.rows[0];
+      }
       if (!user) throw new Error("Invalid credentials");
-      const token = jwtUtils.generateToken(user);
+      const isValidPassword = await userModel.verifyPassword(
+        password,
+        user.password_hash
+      );
+      if (!isValidPassword) throw new Error("Invalid credentials");
+      const token = jwtUtils.generateToken({
+        userId: user.id,
+        username: user.username,
+      });
       return { token, user };
     },
     updateProfile: async (_, { bio, avatar }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return userModel.update(user.id, { bio, avatar });
+      return userModel.updateUserProfile(user.userId, { bio, avatar });
     },
     createPost: async (_, args, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return postModel.create({ ...args, userId: user.id });
+      return postModel.createPost({ ...args, user_id: user.userId });
     },
     updatePost: async (_, { id, ...args }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return postModel.update(id, args, user.id);
+      return postModel.updatePost(id, user.userId, args);
     },
     deletePost: async (_, { id }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return postModel.delete(id, user.id);
+      return postModel.deletePost(id, user.userId);
     },
     likePost: async (_, { postId }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return likeModel.like(postId, user.id);
+      return likeModel.likePost(user.userId, postId);
     },
     unlikePost: async (_, { postId }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return likeModel.unlike(postId, user.id);
+      return likeModel.unlikePost(user.userId, postId);
     },
     commentPost: async (_, { postId, content }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return commentModel.create({ postId, userId: user.id, content });
+      return commentModel.createComment({
+        user_id: user.userId,
+        post_id: postId,
+        content,
+      });
     },
     updateComment: async (_, { id, content }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return commentModel.update(id, content, user.id);
+      return commentModel.updateComment(id, user.userId, content);
     },
     deleteComment: async (_, { id }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return commentModel.delete(id, user.id);
+      return commentModel.deleteComment(id, user.userId);
     },
     followUser: async (_, { userId }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return followModel.follow(user.id, userId);
+      return followModel.followUser(user.userId, userId);
     },
     unfollowUser: async (_, { userId }, { user }) => {
       if (!user) throw new Error("Not authenticated");
-      return followModel.unfollow(user.id, userId);
+      return followModel.unfollowUser(user.userId, userId);
     },
   },
   User: {
-    followersCount: (parent) => followModel.countFollowers(parent.id),
-    followingCount: (parent) => followModel.countFollowing(parent.id),
-    posts: (parent) => postModel.getAll({ userId: parent.id }),
+    followersCount: (parent) =>
+      followModel.getFollowCounts(parent.id).then((c) => c.followerCount),
+    followingCount: (parent) =>
+      followModel.getFollowCounts(parent.id).then((c) => c.followingCount),
+    posts: (parent) => postModel.getPostsByUserId(parent.id, 20, 0),
   },
   Post: {
-    user: (parent) => userModel.getById(parent.user_id || parent.userId),
-    likeCount: (parent) => likeModel.countByPost(parent.id),
-    commentCount: (parent) => commentModel.countByPost(parent.id),
-    comments: (parent) => commentModel.getByPostId(parent.id),
-    likes: (parent) => likeModel.getByPostId(parent.id),
+    user: (parent) => userModel.getUserById(parent.user_id || parent.userId),
+    likeCount: async (parent) => {
+      const likes = await likeModel.getLikesByPostId(parent.id);
+      return likes.length;
+    },
+    commentCount: async (parent) => {
+      const comments = await commentModel.getPostComments(parent.id, 1000, 0);
+      return comments.length;
+    },
+    comments: (parent) => commentModel.getPostComments(parent.id, 20, 0),
+    likes: (parent) => likeModel.getLikesByPostId(parent.id),
   },
   Comment: {
-    user: (parent) => userModel.getById(parent.user_id || parent.userId),
-    post: (parent) => postModel.getById(parent.post_id || parent.postId),
+    user: (parent) => userModel.getUserById(parent.user_id || parent.userId),
+    post: (parent) => postModel.getPostById(parent.post_id || parent.postId),
   },
   Like: {
-    user: (parent) => userModel.getById(parent.user_id || parent.userId),
-    post: (parent) => postModel.getById(parent.post_id || parent.postId),
+    user: (parent) => userModel.getUserById(parent.user_id || parent.userId),
+    post: (parent) => postModel.getPostById(parent.post_id || parent.postId),
   },
   Follow: {
-    follower: (parent) => userModel.getById(parent.follower_id),
-    following: (parent) => userModel.getById(parent.following_id),
+    follower: (parent) => userModel.getUserById(parent.follower_id),
+    following: (parent) => userModel.getUserById(parent.following_id),
   },
 };
 
