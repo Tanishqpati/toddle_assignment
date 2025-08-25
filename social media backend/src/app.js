@@ -30,41 +30,42 @@ app.use("/api/posts", postRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {
-	res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
+  res.status(200).json({ status: "OK", timestamp: new Date().toISOString() });
 });
 
 // Global error handler
 app.use((err, req, res, next) => {
-	logger.critical("Unhandled error:", err);
-	res.status(500).json({
-		error: "Internal server error",
-		...(process.env.NODE_ENV === "development" && { details: err.message }),
-	});
+  logger.critical("Unhandled error:", err);
+  res.status(500).json({
+    error: "Internal server error",
+    ...(process.env.NODE_ENV === "development" && { details: err.message }),
+  });
 });
 
 // 404 handler
 app.use("*", (req, res) => {
-	res.status(404).json({ error: "Route not found" });
+  res.status(404).json({ error: "Route not found" });
 });
 
 /**
  * Start the server
  */
 const startServer = async () => {
-	try {
-		await connectDB();
-		app.listen(PORT, () => {
-			logger.verbose(`Server is running on port ${PORT}`);
-			logger.verbose(
-				`Environment: ${process.env.NODE_ENV || "development"}`
-			);
-		});
-	} catch (error) {
-		logger.critical("Failed to start server:", error);
-		process.exit(1);
-	}
+  try {
+    await connectDB();
+    app.listen(PORT, () => {
+      logger.verbose(`Server is running on port ${PORT}`);
+      logger.verbose(`Environment: ${process.env.NODE_ENV || "development"}`);
+    });
+  } catch (error) {
+    logger.critical("Failed to start server:", error);
+    process.exit(1);
+  }
 };
 
 startServer();
+
+// To run GraphQL server, use: node src/graphql/server.js
+// See src/graphql/README.md for details.
 
 module.exports = app;
