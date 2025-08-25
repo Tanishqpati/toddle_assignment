@@ -1,3 +1,24 @@
+/**
+ * Verify user credentials for login
+ * @param {string} email
+ * @param {string} password
+ * @returns {Promise<Object|null>} User object or null
+ */
+const verifyCredentials = async (email, password) => {
+  const result = await query("SELECT * FROM users WHERE email = $1", [email]);
+  const user = result.rows[0];
+  if (!user) return null;
+  const isValid = await bcrypt.compare(password, user.password_hash);
+  if (!isValid) return null;
+  // Return only safe fields
+  return {
+    id: user.id,
+    username: user.username,
+    email: user.email,
+    full_name: user.full_name,
+    created_at: user.created_at,
+  };
+};
 const { query } = require("../utils/database");
 const bcrypt = require("bcryptjs");
 
@@ -17,7 +38,7 @@ const createUser = async ({ username, email, password, full_name }) => {
     `INSERT INTO users (username, email, password_hash, full_name, created_at)
      VALUES ($1, $2, $3, $4, NOW())
      RETURNING id, username, email, full_name, created_at`,
-    [username, email, hashedPassword, full_name],
+    [username, email, hashedPassword, full_name]
   );
 
   return result.rows[0];
@@ -44,7 +65,7 @@ const getUserByUsername = async (username) => {
 const getUserById = async (id) => {
   const result = await query(
     "SELECT id, username, email, full_name, created_at FROM users WHERE id = $1",
-    [id],
+    [id]
   );
 
   return result.rows[0] || null;
@@ -128,4 +149,5 @@ module.exports = {
   findUsersByName,
   getUserProfile,
   updateUserProfile,
+  verifyCredentials,
 };
