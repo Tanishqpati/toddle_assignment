@@ -9,12 +9,22 @@ let pool;
  */
 const initializePool = () => {
 	if (!pool) {
+		// Use DATABASE_URL if available (for deployment), otherwise use individual params
+		const config = process.env.DATABASE_URL 
+			? { 
+				connectionString: process.env.DATABASE_URL,
+				ssl: { rejectUnauthorized: false }
+			}
+			: {
+				host: process.env.DB_HOST,
+				port: process.env.DB_PORT,
+				database: process.env.DB_NAME,
+				user: process.env.DB_USER,
+				password: process.env.DB_PASSWORD,
+			};
+
 		pool = new Pool({
-			host: process.env.DB_HOST,
-			port: process.env.DB_PORT,
-			database: process.env.DB_NAME,
-			user: process.env.DB_USER,
-			password: process.env.DB_PASSWORD,
+			...config,
 			max: 20,
 			idleTimeoutMillis: 30000,
 			connectionTimeoutMillis: 2000,
