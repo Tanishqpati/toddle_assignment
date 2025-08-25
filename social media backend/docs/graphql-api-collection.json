@@ -1,0 +1,324 @@
+{
+  "info": {
+    "name": "GraphQL API Collection",
+    "description": "All GraphQL queries and mutations for the social media backend.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { register(username: \\\"alice\\\", email: \\\"alice@example.com\\\", password: \\\"password\\\") { token user { id username email } } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Login",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { login(email: \\\"alice@example.com\\\", password: \\\"password\\\") { token user { id username email } } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Update Profile",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { updateProfile(bio: \\\"Hello!\\\", avatar: \\\"avatar.png\\\") { id username bio avatar } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Create Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { createPost(content: \\\"My first post!\\\", image: \\\"img.png\\\", scheduledAt: \\\"2025-08-25T10:00:00Z\\\", commentsEnabled: true) { id content image scheduledAt commentsEnabled } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Update Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { updatePost(id: 1, content: \\\"Updated post\\\", image: \\\"newimg.png\\\", commentsEnabled: false) { id content image commentsEnabled } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Delete Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { deletePost(id: 1) }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Like Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { likePost(postId: 1) { id user { id username } post { id } } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Unlike Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { unlikePost(postId: 1) }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Comment on Post",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { commentPost(postId: 1, content: \\\"Nice post!\\\") { id content user { id username } } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Update Comment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { updateComment(id: 1, content: \\\"Updated comment\\\") { id content } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Delete Comment",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { deleteComment(id: 1) }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Follow User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { followUser(userId: 2) { id follower { id username } following { id username } } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Unfollow User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"mutation { unfollowUser(userId: 2) }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Get Current User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { me { id username email bio avatar } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Get User by ID",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { user(id: 1) { id username email bio avatar } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Search Users",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { users(search: \\\"ali\\\") { id username email } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Get Post by ID",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { post(id: 1) { id content user { id username } } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Get Posts (by user or search)",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { posts(userId: 1, search: \\\"first\\\") { id content } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Get Feed",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{JWT_TOKEN}}"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { feed { id content user { id username } } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Get Comments for Post",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { comments(postId: 1) { id content user { id username } } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Get Likes for Post",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { likes(postId: 1) { id user { id username } } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Get Followers",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { followers(userId: 1) { id username } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    },
+    {
+      "name": "Get Following",
+      "request": {
+        "method": "POST",
+        "header": [{"key": "Content-Type", "value": "application/json"}],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"query\":\"query { following(userId: 1) { id username } }\"}"
+        },
+        "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
+      }
+    }
+  ]
+}
