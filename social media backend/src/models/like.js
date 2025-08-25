@@ -13,13 +13,26 @@ const { query } = require("../utils/database");
  */
 const likePost = async (userId, postId) => {
   try {
-    await query(
-      `INSERT INTO like (user_id, post_id, created_at) VALUES ($1, $2, NOW()) ON CONFLICT DO NOTHING`,
+    // First try to insert
+    const insertResult = await query(
+      `INSERT INTO "like" (user_id, post_id, created_at) VALUES ($1, $2, NOW()) ON CONFLICT DO NOTHING RETURNING id, user_id, post_id, created_at`,
       [userId, postId]
     );
-    return true;
+
+    // If insert worked, return the new record
+    if (insertResult.rows.length > 0) {
+      return insertResult.rows[0];
+    }
+
+    // If no insert (conflict), get the existing record
+    const existingResult = await query(
+      `SELECT id, user_id, post_id, created_at FROM "like" WHERE user_id = $1 AND post_id = $2`,
+      [userId, postId]
+    );
+
+    return existingResult.rows[0] || null;
   } catch (error) {
-    return false;
+    return null;
   }
 };
 
