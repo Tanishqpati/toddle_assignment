@@ -12,7 +12,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { register(username: \\\"alice\\\", email: \\\"alice@example.com\\\", password: \\\"password\\\") { token user { id username email } } }\"}"
+          "raw": "{\"query\":\"mutation { register(username: \\\"alice\\\", email: \\\"alice@example.com\\\", password: \\\"password123\\\", full_name: \\\"Alice Smith\\\") { token user { id username email full_name } } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -24,7 +24,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { login(email: \\\"alice@example.com\\\", password: \\\"password\\\") { token user { id username email } } }\"}"
+          "raw": "{\"query\":\"mutation { login(email: \\\"alice@example.com\\\", password: \\\"password123\\\") { token user { id username email full_name } } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -54,7 +54,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { createPost(content: \\\"My first post!\\\", image: \\\"img.png\\\", scheduledAt: \\\"2025-08-25T10:00:00Z\\\", commentsEnabled: true) { id content image scheduledAt commentsEnabled } }\"}"
+          "raw": "{\"query\":\"mutation { createPost(content: \\\"My first post!\\\", image: \\\"https://example.com/img.png\\\", scheduledAt: \\\"2025-08-25T10:00:00Z\\\", commentsEnabled: true) { id content image scheduledAt commentsEnabled user { username } createdAt likeCount commentCount } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -69,7 +69,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { updatePost(id: 1, content: \\\"Updated post\\\", image: \\\"newimg.png\\\", commentsEnabled: false) { id content image commentsEnabled } }\"}"
+          "raw": "{\"query\":\"mutation { updatePost(id: \\\"1\\\", content: \\\"Updated post content\\\", image: \\\"https://example.com/newimg.png\\\", commentsEnabled: false) { id content image commentsEnabled updatedAt } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -84,7 +84,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { deletePost(id: 1) }\"}"
+          "raw": "{\"query\":\"mutation { deletePost(id: \\\"1\\\") }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -99,7 +99,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { likePost(postId: 1) { id user { id username } post { id } } }\"}"
+          "raw": "{\"query\":\"mutation { likePost(postId: \\\"1\\\") { id user { id username } post { id content } createdAt } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -114,7 +114,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { unlikePost(postId: 1) }\"}"
+          "raw": "{\"query\":\"mutation { unlikePost(postId: \\\"1\\\") }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -129,7 +129,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { commentPost(postId: 1, content: \\\"Nice post!\\\") { id content user { id username } } }\"}"
+          "raw": "{\"query\":\"mutation { commentPost(postId: \\\"1\\\", content: \\\"Nice post!\\\") { id content user { id username } post { id } createdAt } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -144,7 +144,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { updateComment(id: 1, content: \\\"Updated comment\\\") { id content } }\"}"
+          "raw": "{\"query\":\"mutation { updateComment(id: \\\"1\\\", content: \\\"Updated comment\\\") { id content updatedAt } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -159,7 +159,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { deleteComment(id: 1) }\"}"
+          "raw": "{\"query\":\"mutation { deleteComment(id: \\\"1\\\") }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -174,7 +174,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { followUser(userId: 2) { id follower { id username } following { id username } } }\"}"
+          "raw": "{\"query\":\"mutation { followUser(userId: \\\"2\\\") { id follower { id username } following { id username } createdAt } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -189,7 +189,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"mutation { unfollowUser(userId: 2) }\"}"
+          "raw": "{\"query\":\"mutation { unfollowUser(userId: \\\"2\\\") }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -204,7 +204,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { me { id username email bio avatar } }\"}"
+          "raw": "{\"query\":\"query { me { id username email full_name bio avatar followersCount followingCount createdAt } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -216,7 +216,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { user(id: 1) { id username email bio avatar } }\"}"
+          "raw": "{\"query\":\"query { user(id: \\\"1\\\") { id username email full_name bio avatar followersCount followingCount createdAt } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -228,7 +228,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { users(search: \\\"ali\\\") { id username email } }\"}"
+          "raw": "{\"query\":\"query { users(search: \\\"alice\\\") { id username email full_name bio } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -240,7 +240,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { post(id: 1) { id content user { id username } } }\"}"
+          "raw": "{\"query\":\"query { post(id: \\\"1\\\") { id content image user { id username } createdAt updatedAt likeCount commentCount commentsEnabled } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -252,7 +252,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { posts(userId: 1, search: \\\"first\\\") { id content } }\"}"
+          "raw": "{\"query\":\"query { posts(userId: \\\"1\\\", search: \\\"first\\\") { id content image user { username } createdAt likeCount commentCount } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -267,7 +267,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { feed { id content user { id username } } }\"}"
+          "raw": "{\"query\":\"query { feed { id content image user { id username } createdAt likeCount commentCount } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -279,7 +279,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { comments(postId: 1) { id content user { id username } } }\"}"
+          "raw": "{\"query\":\"query { comments(postId: \\\"1\\\") { id content user { id username } post { id } createdAt updatedAt } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -291,7 +291,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { likes(postId: 1) { id user { id username } } }\"}"
+          "raw": "{\"query\":\"query { likes(postId: \\\"1\\\") { id user { id username } post { id content } createdAt } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -303,7 +303,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { followers(userId: 1) { id username } }\"}"
+          "raw": "{\"query\":\"query { followers(userId: \\\"1\\\") { id username email full_name } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
@@ -315,7 +315,7 @@
         "header": [{"key": "Content-Type", "value": "application/json"}],
         "body": {
           "mode": "raw",
-          "raw": "{\"query\":\"query { following(userId: 1) { id username } }\"}"
+          "raw": "{\"query\":\"query { following(userId: \\\"1\\\") { id username email full_name } }\"}"
         },
         "url": {"raw": "{{GRAPHQL_URL}}", "host": ["{{GRAPHQL_URL}}"]}
       }
