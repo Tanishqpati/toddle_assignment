@@ -5,6 +5,7 @@ const typeDefs = gql`
     id: ID!
     username: String!
     email: String!
+    full_name: String!
     bio: String
     avatar: String
     followersCount: Int
@@ -72,7 +73,12 @@ const typeDefs = gql`
   }
 
   type Mutation {
-    register(username: String!, email: String!, password: String!): AuthPayload
+    register(
+      username: String!
+      email: String!
+      password: String!
+      full_name: String!
+    ): AuthPayload
     login(email: String!, password: String!): AuthPayload
     updateProfile(bio: String, avatar: String): User
     createPost(
