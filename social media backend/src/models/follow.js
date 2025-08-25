@@ -13,13 +13,26 @@ const { query } = require("../utils/database");
  */
 const followUser = async (followerId, followingId) => {
   try {
-    await query(
-      `INSERT INTO follow (follower_id, following_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+    // First try to insert
+    const insertResult = await query(
+      `INSERT INTO follow (follower_id, following_id, created_at) VALUES ($1, $2, NOW()) ON CONFLICT DO NOTHING RETURNING id, follower_id, following_id, created_at`,
       [followerId, followingId]
     );
-    return true;
+
+    // If insert worked, return the new record
+    if (insertResult.rows.length > 0) {
+      return insertResult.rows[0];
+    }
+
+    // If no insert (conflict), get the existing record
+    const existingResult = await query(
+      `SELECT id, follower_id, following_id, created_at FROM follow WHERE follower_id = $1 AND following_id = $2`,
+      [followerId, followingId]
+    );
+
+    return existingResult.rows[0] || null;
   } catch (error) {
-    return false;
+    return null;
   }
 };
 
